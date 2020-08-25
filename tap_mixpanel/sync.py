@@ -105,6 +105,20 @@ def process_records(catalog, #pylint: disable=too-many-branches
         return max_bookmark_value, counter.value
 
 
+# transform record and append to transformed_data array
+def transform_record(transformed_data, id_fields, record, stream_name, project_timezone, parent_record):
+    transformed_record = transform_record(record, stream_name, project_timezone, parent_record)
+    transformed_data.append(transformed_record)
+
+    # Check for missing keys
+    for key in id_fields:
+        val = transformed_record.get(key)
+        if val == '' or not val:
+            LOGGER.error('Error: Missing Key from {}'.format(id_fields))
+            LOGGER.error(' Missing key {} in record: {}'.format(key, record))
+            raise 'Missing Key'
+
+
 # Sync a specific endpoint
 def sync_endpoint(client, #pylint: disable=too-many-branches
                   catalog,
@@ -266,18 +280,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                         if record and str(record) != '':
                             # transform reocord and append to transformed_data array
                             # LOGGER.info('record = {}'.format(record)) # COMMENT OUT
-                            transformed_record = transform_record(record, stream_name, \
-                                project_timezone)
-                            transformed_data.append(transformed_record)
-
-                            # Check for missing keys
-                            for key in id_fields:
-                                val = transformed_record.get(key)
-                                if val == '' or not val:
-                                    LOGGER.error('Error: Missing Key')
-                                    LOGGER.error(' Missing key {} in record: {}'.format(
-                                        key, record))
-                                    raise 'Missing Key'
+                            transform_record(transformed_data, id_fields, record,
+                                             stream_name, project_timezone, parent_record)
 
                             if len(transformed_data) == limit:
                                 # Process full batch (limit = 250) records
@@ -368,23 +372,10 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                             data = new_data
 
                         transformed_data = []
-                        # Loop through result records
+
                         for record in data[data_key]:
-                            # transform reocord and append to transformed_data array
-                            transformed_record = transform_record(
-                                record, stream_name, project_timezone, parent_record)
-                            transformed_data.append(transformed_record)
-
-                            # Check for missing keys
-                            for key in id_fields:
-                                val = transformed_record.get(key)
-                                if val == '' or not val:
-                                    LOGGER.error('Error: Missing Key')
-                                    LOGGER.error(' Missing key {} in record: {}'.format(
-                                        key, transformed_record))
-                                    raise 'Missing Key'
-
-                            # End data record loop
+                            transform_record(transformed_data, id_fields, record,
+                                             stream_name, project_timezone, parent_record)
 
                         if not transformed_data or transformed_data is None or \
                             transformed_data == []:

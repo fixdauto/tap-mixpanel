@@ -2,6 +2,7 @@ import os
 import json
 from singer import metadata
 from tap_mixpanel.streams import STREAMS
+from tap_mixpanel.transform import reformat_keys
 
 # Reference:
 # https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#Metadata
@@ -36,10 +37,7 @@ def get_schema(client, properties_flag, stream_name):
         if properties.get('status') == 'ok':
             results = properties.get('results', {})
             for key, val in results.items():
-                if key[0:1] == '$':
-                    new_key = 'mp_reserved_{}'.format(key[2:])
-                else:
-                    new_key = key
+                new_key = reformat_keys(key)
 
                 # Defaults
                 this_type = ['null', 'string']
@@ -91,10 +89,7 @@ def get_schema(client, properties_flag, stream_name):
             params={'limit': 2000},
             endpoint='event_properties')
         for key, val in results.items():
-            if key[0:1] == '$':
-                new_key = 'mp_reserved_{}'.format(key[2:])
-            else:
-                new_key = key
+            new_key = reformat_keys(key)
 
             # string ONLY for event properties (no other datatypes)
             # Reference: https://help.mixpanel.com/hc/en-us/articles/360001355266-Event-Properties#field-size-character-limits-for-event-properties

@@ -5,6 +5,9 @@
     "event": {
       "type": ["null", "string"]
     },
+    "insert_id": {
+      "type": ["null", "string"]
+    },
     "distinct_id": {
       "type": ["null", "string"]
     },

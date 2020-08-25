@@ -6,17 +6,25 @@ from singer.utils import strftime
 
 LOGGER = singer.get_logger()
 
+
+def reformat_keys(key):
+    if key is None:
+        return
+    elif key in ['$insert_id']:
+        return key[1:]
+    elif key[0] == '$':
+        return 'mp_{}'.format(key[1:].lower())
+    else:
+        return key.replace(' ', '_').lower()
+
+
 # De-nest properties for engage and export endpoints
 def denest_properties(record, properties_node):
     new_record = record
     properties = record.get(properties_node)
     if properties:
         for key, val in record[properties_node].items():
-            if key[0:1] == '$':
-                new_key = 'mp_reserved_{}'.format(key[2:])
-                # change this to regex
-            else:
-                new_key = key
+            new_key = reformat_keys(key)
             new_record[new_key] = val
         new_record.pop(properties_node, None)
     return new_record
@@ -35,7 +43,7 @@ def transform_event_times(record, project_timezone):
     beginning_datetime = timezone.localize(naive_datetime)
 
     # Get integer time
-    time_int = int(record.get('time'))
+    time_int = float(record.get('time'))
 
     # Create new_time_utc by adding seconds to beginning_datetime, normalizing,
     #   and converting to string
