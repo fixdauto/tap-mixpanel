@@ -106,7 +106,7 @@ def process_records(catalog, #pylint: disable=too-many-branches
 
 
 # transform record and append to transformed_data array
-def transform_record(transformed_data, id_fields, record, stream_name, project_timezone, parent_record):
+def transform_records(transformed_data, id_fields, record, stream_name, project_timezone, parent_record):
     transformed_record = transform_record(record, stream_name, project_timezone, parent_record)
     transformed_data.append(transformed_record)
 
@@ -280,8 +280,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                         if record and str(record) != '':
                             # transform reocord and append to transformed_data array
                             # LOGGER.info('record = {}'.format(record)) # COMMENT OUT
-                            transform_record(transformed_data, id_fields, record,
-                                             stream_name, project_timezone, parent_record)
+                            transform_records(transformed_data, id_fields, record,
+                                              stream_name, project_timezone, parent_record)
 
                             if len(transformed_data) == limit:
                                 # Process full batch (limit = 250) records
@@ -374,8 +374,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                         transformed_data = []
 
                         for record in data[data_key]:
-                            transform_record(transformed_data, id_fields, record,
-                                             stream_name, project_timezone, parent_record)
+                            transform_records(transformed_data, id_fields, record,
+                                              stream_name, project_timezone, parent_record)
 
                         if not transformed_data or transformed_data is None or \
                             transformed_data == []:
