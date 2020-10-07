@@ -129,8 +129,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                   endpoint_config,
                   bookmark_field=None,
                   project_timezone=None,
-                  days_interval=None,
-                  attribution_window=None):
+                  days_interval=0,
+                  attribution_window=0):
 
     # Get endpoint_config fields
     url = endpoint_config.get('url')
@@ -158,9 +158,9 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
     now_datetime = datetime.now(tzone)
 
     if bookmark_query_field_from and bookmark_query_field_to:
-        # days_interval from config date_window_size, default = 60; passed to function from sync
+        # days_interval from config date_window_size, default = 0; passed to function from sync
         if not days_interval:
-            days_interval = 30
+            days_interval = 0
 
         last_dttm = strptime_to_utc(last_datetime)
         delta_days = (now_datetime - last_dttm).days
@@ -168,10 +168,6 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
             delta_days = attribution_window
             LOGGER.info("Start bookmark less than {} day attribution window.".format(
                 attribution_window))
-        elif delta_days >= 365:
-            delta_days = 365
-            LOGGER.warning("WARNING: Start date or bookmark greater than 1 year maxiumum.")
-            LOGGER.warning("WARNING: Setting bookmark start to 1 year ago.")
 
         start_window = now_datetime - timedelta(days=delta_days)
         end_window = start_window + timedelta(days=days_interval)
@@ -497,8 +493,8 @@ def sync(client, config, catalog, state, start_date):
             endpoint_config=endpoint_config,
             bookmark_field=bookmark_field,
             project_timezone=config.get('project_timezone', 'UTC'),
-            days_interval=int(config.get('date_window_size', '30')),
-            attribution_window=int(config.get('attribution_window', '5'))
+            days_interval=int(config.get('date_window_size', '0')),
+            attribution_window=int(config.get('attribution_window', '0'))
         )
 
         update_currently_syncing(state, None)
