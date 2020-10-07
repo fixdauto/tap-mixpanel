@@ -434,8 +434,13 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                 if bookmark_query_field_from else ''))
         LOGGER.info('  Total records for date window: {}'.format(date_total))
         # Increment date window
-        start_window = end_window
-        next_end_window = end_window + timedelta(days=days_interval)
+        if start_window == end_window and days_interval == 0:
+            start_window = start_window + timedelta(days=1)
+            next_end_window = end_window + timedelta(days=1)
+        else:
+            start_window = end_window
+            next_end_window = end_window + timedelta(days=days_interval)
+            
         if next_end_window > now_datetime:
             end_window = now_datetime
         else:
